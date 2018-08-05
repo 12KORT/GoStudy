@@ -2,11 +2,15 @@
 package main
 
 import (
-	"file"
-	"fmt"
+	// "fmt"
+	"grammer"
 )
 
+func test_grammer() {
+	//grammer.Slice_use()
+	//grammer.Map_Use()
+	grammer.VarArgs("arg", 1, 2, 3)
+}
 func main() {
-	fmt.Println("Hello World!")
-	filelib.Test()
+	test_grammer()
 }
