@@ -2,7 +2,9 @@ package grammer
 
 import (
 	"fmt"
+	"math"
 	"strconv"
+	"time"
 )
 
 func Slice_use() {
@@ -65,4 +67,112 @@ func VarArgs(str string, nums ...int) {
 	}
 
 	fmt.Println("total :", total)
+}
+
+type geometry interface {
+	area() float64
+	perim() float64
+}
+
+type rect struct {
+	width, height float64
+}
+
+type circle struct {
+	radius float64
+}
+
+func (r rect) area() float64 {
+	return r.height * r.width
+}
+
+func (r rect) perim() float64 {
+	return 2 * (r.height + r.width)
+}
+
+func (c circle) area() float64 {
+	return math.Pi * c.radius * c.radius
+}
+
+func (c circle) perim() float64 {
+	return 2 * math.Pi * c.radius
+}
+
+func measure(g geometry) {
+	fmt.Println("g: ", g)
+	fmt.Println("g.area():", g.area())
+	fmt.Println("g.perim():", g.perim())
+}
+
+func UseInterface() {
+	r := rect{width: 3, height: 4}
+	c := circle{radius: 5}
+
+	measure(r)
+	measure(c)
+}
+
+//channel
+func Worker(done chan bool) {
+	fmt.Println("start work")
+	time.Sleep(time.Second)
+	done <- true
+	fmt.Println("end work")
+}
+
+func InOut(in chan<- string, out <-chan string) {
+	in <- "in1"
+	<-out
+}
+
+func UseChannel() {
+	ch := make(chan string, 2)
+	ch <- "chan 1"
+	ch <- "chan 2"
+	fmt.Println("ch0", <-ch)
+	fmt.Println("ch1", <-ch)
+
+	done := make(chan bool, 1)
+	Worker(done)
+	<-done
+	fmt.Println("call Work done")
+
+	ch1 := make(chan string, 1)
+	ch2 := make(chan string, 2)
+	ch2 <- "out1"
+	InOut(ch1, ch2)
+	fmt.Println(<-ch1)
+	fmt.Println("test inout chan done")
+
+}
+
+func UseChannel_Select() {
+	c1 := make(chan string, 1)
+	go func() {
+		time.Sleep(time.Second * 5)
+		c1 <- "ch1"
+	}()
+
+	select {
+	case res := <-c1:
+		fmt.Println(res)
+	case <-time.After(time.Second * 1):
+		fmt.Println("case time.after")
+	default:
+		fmt.Println("no case")
+	}
+}
+
+func UseChannelRange() {
+	list := make(chan string, 3)
+	list <- "chan 0"
+	list <- "chan 1"
+	//close(list)
+
+	fmt.Println("before for")
+	for elm := range list {
+		fmt.Println("in for")
+		fmt.Println(elm)
+	}
+
 }

@@ -9,7 +9,11 @@ import (
 func test_grammer() {
 	//grammer.Slice_use()
 	//grammer.Map_Use()
-	grammer.VarArgs("arg", 1, 2, 3)
+	//grammer.VarArgs("arg", 1, 2, 3)
+	//grammer.UseInterface()
+	//grammer.UseChannel()
+	//grammer.UseChannel_Select()
+	grammer.UseChannelRange()
 }
 func main() {
 	test_grammer()
