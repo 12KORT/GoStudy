@@ -13,7 +13,8 @@ func test_grammer() {
 	//grammer.UseInterface()
 	//grammer.UseChannel()
 	//grammer.UseChannel_Select()
-	grammer.UseChannelRange()
+	//grammer.UseChannelRange()
+	grammer.UseWorkThread()
 }
 func main() {
 	test_grammer()

@@ -167,12 +167,55 @@ func UseChannelRange() {
 	list := make(chan string, 3)
 	list <- "chan 0"
 	list <- "chan 1"
-	//close(list)
-
+	close(list) //如果不关闭， 后面的range list会一直等待第三个channel, 关闭后，读的时候
+	//就不会阻塞，不会等待
+	//	fmt.Println("list print")
+	//	fmt.Println(<-list)
+	//	fmt.Println(<-list)
+	//	fmt.Println(<-list)
+	return
 	fmt.Println("before for")
 	for elm := range list {
 		fmt.Println("in for")
 		fmt.Println(elm)
 	}
-
 }
+
+//////////////////////// work thread ///////////////////////
+type Job struct {
+	name string
+	id   int
+}
+
+func (j Job) DoJob() {
+	fmt.Println("job id:", j.id, "is done")
+}
+
+func woker(id int, jobs <-chan Job, results chan<- int) {
+	for j := range jobs {
+		fmt.Println("work id", id)
+		time.Sleep(time.Second)
+		j.DoJob()
+		results <- id * 2
+	}
+}
+
+func UseWorkThread() {
+	jobs := make(chan Job, 100)
+	results := make(chan int, 100)
+	for w := 1; w <= 3; w++ {
+		go woker(w, jobs, results)
+	}
+
+	for i := 1; i <= 9; i++ {
+		job := Job{name: "job", id: i}
+		jobs <- job
+	}
+
+	close(jobs)
+	for a := 1; a <= 9; a++ {
+		<-results
+	}
+}
+
+////////////////////////////////////////////////////////////
