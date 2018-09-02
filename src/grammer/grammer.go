@@ -2,8 +2,12 @@ package grammer
 
 import (
 	"fmt"
+	"log"
 	"math"
+	"net/http"
+	//"runtime"
 	"strconv"
+	"sync/atomic"
 	"time"
 )
 
@@ -187,15 +191,14 @@ type Job struct {
 	id   int
 }
 
-func (j Job) DoJob() {
-	fmt.Println("job id:", j.id, "is done")
+func (j Job) DoJob(id int) {
+	fmt.Println("worker id:", id, "job id:", j.id, "is done")
 }
 
 func woker(id int, jobs <-chan Job, results chan<- int) {
 	for j := range jobs {
-		fmt.Println("work id", id)
-		time.Sleep(time.Second)
-		j.DoJob()
+		time.Sleep(time.Second) //如果不等待， 迁程切换之前已经把job执行完毕
+		j.DoJob(id)
 		results <- id * 2
 	}
 }
@@ -219,3 +222,52 @@ func UseWorkThread() {
 }
 
 ////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
+// 原子计数器
+
+func UseAtomic() {
+	var ops uint64 = 0
+	for i := 0; i < 50; i++ {
+		go func() {
+			for {
+				atomic.AddUint64(&ops, 1)
+				// runtime.Gosched() //如果注释掉，会无限循环, 占掉CPU的所有资源
+			}
+		}()
+	}
+
+	time.Sleep(time.Second)
+	lastOps := atomic.LoadUint64(&ops)
+	fmt.Println("ops: ", lastOps)
+	lastOps = atomic.LoadUint64(&ops)
+	fmt.Println("ops: ", lastOps)
+	//fmt.Println("ops: ", ops)
+}
+
+//////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////
+//////////////////web http///////////////////////////////////////////
+func SimpleHttpHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	fmt.Println(r.Form)
+	fmt.Println("path", r.URL.Path)
+
+	for k, v := range r.Form {
+		fmt.Println("key:", k)
+		fmt.Println("val:", v)
+	}
+
+	fmt.Fprintf(w, "hello, it's test web")
+}
+
+func UseTttp() {
+	http.HandleFunc("/", SimpleHttpHandler)
+	fmt.Print("begin web listen")
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		log.Fatal("ListenAndserve:", err)
+	}
+}
+
+/////////////////////////////////////////////////////////////
